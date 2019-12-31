@@ -367,8 +367,119 @@ class AlienDictionary {
 }
 
 const lang1 = new AlienDictionary(["ba", "bc", "ac", "cab"]);
-lang1.findOrder(); //?
+lang1.findOrder();
 const lang2 = new AlienDictionary(["cab", "aaa", "aab"]);
-lang2.findOrder(); //?
+lang2.findOrder();
 const lang3 = new AlienDictionary(["ywx", "wz", "xww", "xz", "zyy", "zwz"]);
-lang3.findOrder(); //?
+lang3.findOrder();
+
+//====================================
+
+function isUniqueSequence(original, seqs) {
+  const relations = {};
+  const inDegrees = {};
+  for (let seq of seqs) {
+    for (let idx = 0; idx < seq.length - 1; idx++) {
+      const parent = seq[idx];
+      const child = seq[idx + 1];
+      relations[parent] = relations[parent] || new Set();
+      relations[child] = relations[child] || new Set();
+      relations[parent].add(child);
+      inDegrees[parent] = inDegrees[parent] || 0;
+      inDegrees[child] = (inDegrees[child] || 0) + 1;
+    }
+  }
+  
+  const sequence = [];
+  const queue = [];
+  for (let inDegree in inDegrees) {
+    if (!inDegrees[inDegree]) {
+      queue.push(+inDegree);
+    }
+  }
+
+  while (queue.length) {
+    if (queue.length > 1) {
+      return false;
+    }
+    const source = queue.shift();
+    sequence.push(source);
+    for (let child of relations[source]) {
+      inDegrees[child]--;
+      if (!inDegrees[child]) {
+        queue.push(child);
+      }
+    }
+  }
+
+  function compareSequences(seq1, seq2) {
+    if (seq1.length !== seq2.length) {
+      return false;
+    }
+    for (let i = 0; i < seq1.length; i++) {
+      if (seq1[i] !== seq2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return compareSequences(original, sequence);
+}
+
+isUniqueSequence([1, 2, 3, 4], [[1, 2], [2, 3], [3, 4]]); //true
+isUniqueSequence([1, 2, 3, 4], [[1, 2], [2, 3], [2, 4]]); //false
+isUniqueSequence([3, 1, 4, 2, 5], [[3, 1, 5], [1, 4, 2, 5]]); //true
+
+function minimumHeightTrees(numVertices, edges) {
+  const relations = {};
+  const inDegrees = {};
+  for (let edge of edges) {
+    const [node1, node2] = edge;
+    relations[node1] = relations[node1] || new Set();
+    relations[node2] = relations[node2] || new Set();
+    relations[node1].add(node2);
+    relations[node2].add(node1);
+    inDegrees[node1] = (inDegrees[node1] || 0) + 1;
+    inDegrees[node2] = (inDegrees[node2] || 0) + 1;
+  }
+
+  const leaves = [];
+  const order = [];
+
+  for (let node in inDegrees) {
+    if (inDegrees[node] === 1) {
+      leaves.push({leaf: node, height: 0});
+    }
+  }
+
+  while (leaves.length) {
+    const {leaf, height} = leaves.shift();
+    order.push({node: leaf, height});
+    for (let node of relations[leaf]) {
+      inDegrees[node]--;
+      if (inDegrees[node] === 1) {
+        leaves.push({leaf: node, height: height + 1});
+      }
+    }
+
+  }
+
+  const minHeight = order[order.length - 1].height;
+  const centralNodes = []
+  while (order.length) {
+    const {height, node} = order.pop();
+    if (height === minHeight) {
+      centralNodes.push(node);
+    } else {
+      return centralNodes;
+    }
+  }
+  return centralNodes;
+}
+
+
+
+minimumHeightTrees(5, [[0, 1], [1, 2], [1, 3], [2, 4]]); // 1, 2
+minimumHeightTrees(4, [[0, 1], [0, 2], [2, 3]]); // 0, 2
+minimumHeightTrees(4, [[0, 1], [1, 2], [1, 3]]); // 1
