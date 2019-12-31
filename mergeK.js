@@ -284,3 +284,79 @@ rearrange("Programming"); // "rgmrgmPiano" or "gmringmrPoa" or "gmrPagimnor",
 rearrange("aapa"); // "" (not possible)
 rearrange("aaabcd"); // "adacba"
 rearrange("bbbbaaaaa"); // "ababababa"
+
+// Given a string and a number ‘K’, find if the string can be rearranged such that the same characters are at least ‘K’ distance apart from each other.
+function rearrangeKDistance(str, K) {
+  if (K <= 1) {
+    return str;
+  }
+
+  const frequencies = {};
+  for (let char of str) {
+    frequencies[char] = (frequencies[char] || 0) + 1;
+  }
+  const maxHeap = new Heap(Object.entries(frequencies), null, (a, b) => a[1] - b[1]);
+  const letters = [];
+  const storage = [];
+
+  while (maxHeap.length) {
+    let [char, freq] = maxHeap.pop();
+
+    letters.push(char);
+    freq--;
+    storage.push({char, freq});
+    if (storage.length >= K) {
+      const saved = storage.shift();
+      if (saved.freq) {
+        maxHeap.push([saved.char, saved.freq]);
+      }
+    }
+  }
+  return letters.length === str.length ? letters.join('') : "";
+}
+
+rearrangeKDistance("mmpp", 2); // "mpmp" or "pmpm"
+rearrangeKDistance("Programming", 3); // "rgmPrgmiano" or "gmringmrPoa"
+rearrangeKDistance("aab", 2); // "aba"
+rearrangeKDistance("aappa", 3); // "" (not possible)
+
+// You are given a list of tasks that need to be run, in any order, on a server. Each task will take one CPU interval to execute but once a task has finished, it has a cooling period during which it can’t be run again. If the cooling period for all tasks is ‘K’ intervals, find the minimum number of CPU intervals that the server needs to finish all tasks.
+
+// If at any time the server can’t execute any task then it must stay idle.
+
+function scheduleTasks(tasks, K) {
+  const frequencies = {};
+  for (let task of tasks) {
+    frequencies[task] = (frequencies[task] || 0) + 1;
+  }
+  const tasksHeap = new Heap(Object.entries(frequencies), null, (a, b) => a[1] - b[1]);
+
+  let intervals = 0;
+
+  while (tasksHeap.length) {
+    const cooldownQueue = [];
+    let cycleLength = K + 1;
+    while (cycleLength > 0 && tasksHeap.length) {
+      let [task, freq] = tasksHeap.pop();
+      cycleLength--;
+      intervals++;
+      freq--;
+      if (freq) {
+        cooldownQueue.push({task, freq});
+      }
+    }
+
+    cooldownQueue.forEach(({task, freq}) => tasksHeap.push([task, freq]));
+    
+    if (tasksHeap.length) {
+      intervals += cycleLength;
+    }
+  }
+
+  return intervals;
+}
+
+scheduleTasks(["a", "a", "a", "b", "c", "c"], 2); //?
+// 7 (a -> c -> b -> a -> c -> idle -> a)
+scheduleTasks(["a", "b", "a"], 3); //?
+// 5 (a -> b -> idle -> idle -> a)
