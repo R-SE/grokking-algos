@@ -87,32 +87,65 @@ const search_next_letter = function(letters, key) {
   }
 };
 
-console.log(search_next_letter(['a', 'c', 'f', 'h'], 'f'))
-console.log(search_next_letter(['a', 'c', 'f', 'h'], 'b'))
-console.log(search_next_letter(['a', 'c', 'f', 'h'], 'm'))
-console.log(search_next_letter(['a', 'c', 'f', 'h'], 'h'))
+// console.log(search_next_letter(['a', 'c', 'f', 'h'], 'f'))
+// console.log(search_next_letter(['a', 'c', 'f', 'h'], 'b'))
+// console.log(search_next_letter(['a', 'c', 'f', 'h'], 'm'))
+// console.log(search_next_letter(['a', 'c', 'f', 'h'], 'h'))
 
-const find_range = function(arr, key) {
+
+
+function find_range(arr, key) {
   let p1 = 0;
   let p2 = arr.length - 1;
-  // let p3 = 
   if (key < arr[p1] || key > arr[p2]) {
     return [-1, -1];
   }
-  const result = [];
 
-  
+  // 3. Search for the start or end depending on the condition and direction passed in.
+  function modifiedBinarySearch(condition, p1, p2, isReverseDirection) {
+    while (p1 <= p2) {
+      const midpoint = p1 + Math.floor((p2 - p1) / 2);
+      if (condition(midpoint)) {
+        return midpoint;
+      } else if (arr[midpoint] === key) {
+        if (isReverseDirection) {
+          p1 = midpoint + 1;
+        } else {
+          p2 = midpoint - 1;
+        }
+      } else if (arr[midpoint] > key) {
+        p2 = midpoint - 1;
+      } else {
+        p1 = midpoint + 1;
+      }
+    }
+  }
+  const isStartEdge = midpoint => arr[midpoint] === key && (midpoint <= 0 || arr[midpoint - 1] < arr[midpoint]);
+  const isEndEdge = midpoint => arr[midpoint] === key && (midpoint >= arr.length - 1 || arr[midpoint + 1] > arr[midpoint]);
+
+  let isFound = false;
+
+  // 1. Search for number first to make sure it exists, and to decrease the search radius.
+  while (p1 <= p2 && !isFound) {
+    const midpoint = p1 + Math.floor((p2 - p1) / 2);
+    if (arr[midpoint] === key) {
+      isFound = true;
+    } else if (arr[midpoint] >= key) {
+      p2 = midpoint - 1;
+    } else {
+      p1 = midpoint + 1;
+    }
+  }
+
+  // 2. If found, search for the boundaries.
+  if (isFound) {
+    return [modifiedBinarySearch(isStartEdge, p1, p2), modifiedBinarySearch(isEndEdge, p1, p2, true)];
+  }
+
   return [-1, -1];
 };
 
-/*
-Notes:
-|   |     |  |
-v   v     v  v
-[4, 6, 6, 6, 9]
-
-*/
-
-console.log(find_range([4, 6, 6, 6, 9], 6))
-console.log(find_range([1, 3, 8, 10, 15], 10))
-console.log(find_range([1, 3, 8, 10, 15], 12))
+console.log(find_range([4, 6, 6, 6, 9], 6));
+console.log(find_range([1, 3, 8, 10, 15], 10));
+console.log(find_range([1, 3, 8, 10, 15], 12));
+console.log(find_range([8, 8, 8, 8, 8], 8));
