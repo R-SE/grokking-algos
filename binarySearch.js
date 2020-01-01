@@ -145,7 +145,120 @@ function find_range(arr, key) {
   return [-1, -1];
 };
 
-console.log(find_range([4, 6, 6, 6, 9], 6));
-console.log(find_range([1, 3, 8, 10, 15], 10));
-console.log(find_range([1, 3, 8, 10, 15], 12));
-console.log(find_range([8, 8, 8, 8, 8], 8));
+// console.log(find_range([4, 6, 6, 6, 9], 6));
+// console.log(find_range([1, 3, 8, 10, 15], 10));
+// console.log(find_range([1, 3, 8, 10, 15], 12));
+// console.log(find_range([8, 8, 8, 8, 8], 8));
+
+class ArrayReader {
+  constructor(arr) {
+    this.arr = arr;
+  }
+
+  get(index) {
+    if (index >= this.arr.length)
+      return Number.MAX_SAFE_INTEGER;
+    return this.arr[index]
+  }
+};
+
+const search_in_infinite_array = function(reader, key) {
+  let pointer = 0;
+  if (key < reader.get(pointer)) {
+    return -1;
+  }
+  let scanFactor = 1;
+  while (scanFactor >= 1) {
+    const value = reader.get(pointer);
+    if (value === key) {
+      return pointer;
+    } else if (value < key) {
+      pointer += scanFactor;
+      scanFactor *= 2;
+    } else {
+      pointer -= scanFactor / 2;
+      scanFactor /= 4;
+    }
+  }
+
+  return -1;
+};
+
+// const reader = new ArrayReader([4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]);
+// console.log(search_in_infinite_array(reader, 16));
+// console.log(search_in_infinite_array(reader, 11));
+// const reader2 = new ArrayReader([1, 3, 8, 10, 12, 15, 17, 30, 55, 89, 232, 888, 999, 1092]);
+// console.log(search_in_infinite_array(reader2, 15));
+// console.log(search_in_infinite_array(reader2, 200));
+// console.log(search_in_infinite_array(reader2, 3));
+// console.log(search_in_infinite_array(reader2, 8));
+// console.log(search_in_infinite_array(reader2, 1));
+// console.log(search_in_infinite_array(reader2, 0));
+// console.log(search_in_infinite_array(reader2, 12));
+// console.log(search_in_infinite_array(reader2, 999));
+// console.log(search_in_infinite_array(reader2, 1092));
+// console.log(search_in_infinite_array(reader2, 89));
+// console.log(search_in_infinite_array(reader2, 30));
+// console.log(search_in_infinite_array(reader2, 55));
+// console.log(search_in_infinite_array(reader2, 17));
+// console.log(search_in_infinite_array(reader2, 232));
+
+const search_min_diff_element = function(arr, key) {
+  let minDiff = Infinity;
+  let closest;
+  let p1 = 0;
+  let p2 = arr.length - 1;
+  while (p1 <= p2) {
+    const midpoint = p1 + Math.floor((p2 - p1) / 2);
+    const value = arr[midpoint];
+    const difference = value - key;
+    if (!difference) {
+      return value;
+    } else if (difference > 0) {
+      p2 = midpoint - 1;
+    } else {
+      p1 = midpoint + 1;
+    }
+    if (Math.abs(difference) < minDiff) {
+      minDiff = Math.abs(difference);
+      closest = value;
+    }
+  }
+
+  return closest;
+};
+
+
+// [-3, 1, 3, 4, 5] -> find point at which (value - key) -> negative becomes positive
+// console.log(search_min_diff_element([4, 6, 10, 11, 12], 7))
+// console.log(search_min_diff_element([4, 6, 10], 4))
+// console.log(search_min_diff_element([1, 3, 8, 10, 15], 12))
+// console.log(search_min_diff_element([4, 6, 10], 17))
+
+const find_max_in_bitonic_array = function(arr) {
+  let p1 = 0;
+  let p2 = arr.length - 1;
+  while (p1 <= p2) {
+    const midpoint = p1 + Math.floor((p2 - p1) / 2);
+    if (arr[midpoint] >= arr[midpoint - 1] && arr[midpoint] >= arr[midpoint + 1]) { // condition 1
+      return arr[midpoint];
+    } else if (arr[midpoint] > arr[midpoint - 1] && arr[midpoint] < arr[midpoint + 1]) { // condition 2
+      p1 = midpoint + 1;
+    } else {  // condition 3
+      p2 = midpoint - 1;
+    }
+  }
+  return arr[0] < arr[arr.length - 1] ? arr[arr.length - 1] : arr[0];
+};
+
+// Every array will have a max.
+// 1. find number in array where left is smaller and right is smaller
+// 2. if curr num's left is smaller and curr num's right is larger, move to right
+// 3. if curr num's left is larger and curr num's right is smaller, move to left 
+console.log(find_max_in_bitonic_array([1, 3, 8, 12, 4, 2]))
+console.log(find_max_in_bitonic_array([3, 8, 3, 1]))
+// Edge case: In a monotonically increasing sequence, condition 2 will always be true, and same for on condition 3 for decreasing.
+console.log(find_max_in_bitonic_array([1, 3, 8, 12]))
+console.log(find_max_in_bitonic_array([1, 3, 8, 12, 15, 17, 19, 20]))
+console.log(find_max_in_bitonic_array([10, 9, 8]))
+console.log(find_max_in_bitonic_array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]))
